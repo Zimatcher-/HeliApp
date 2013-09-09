@@ -1,9 +1,14 @@
 package com.zimatcher.helicopter;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.UUID;
 import android.os.Bundle;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.VerticalSeekBar;
-import com.zimatcher.helicopter.Bluetooth;
+
 
 public class MainActivity extends Activity {
 
@@ -25,12 +30,15 @@ public class MainActivity extends Activity {
 	TextView seekBarValue; 
 	BroadcastReceiver mReceiver;
 	IntentFilter filter;
-	BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+	String sendLetter;
+	public static BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+	static Context context ;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		context = getApplicationContext();
      
 		seekBar = (VerticalSeekBar)findViewById(R.id.throtleBar);
 		seekBarValue = (TextView)findViewById(R.id.throtleText);
@@ -62,14 +70,13 @@ public class MainActivity extends Activity {
 			       }); 
 
 	}
-	
+
     public void Connect(View view) {
 	    // Is the toggle on?
 	    boolean on = ((ToggleButton) view).isChecked();
 	    
 	    if (on) {
 	        // Connect To Heli
-	    	ToastText("Trying to Connect");
 	    	CheckBT();
 	    } else {
 	        // Disconnect From Heli
@@ -77,11 +84,12 @@ public class MainActivity extends Activity {
 	    	lightsButton.setChecked(false);
 	    	ToastText("Disconnecting");
 	    	ToastText("Bluetooth Turning off");
+	    	
 	    	mBluetoothAdapter.disable();
 	    }
 	}
 
-	public void Heli(View view) {
+	public void Heli(View view) throws IOException {
 	    // Is the toggle on?
 	    boolean on = ((ToggleButton) view).isChecked();
 	    boolean connected = connectButton.isChecked();
@@ -89,7 +97,8 @@ public class MainActivity extends Activity {
 	    if (on) {
 	    	if (connected){
 	    		// Turn Heli On
-		    	ToastText("Heli Turning On");
+		    	sendLetter = "4";
+		    	sendData();
 	    	} else {
 	    		ToastText("Not Connected");
 	    		heliButton.setChecked(false);
@@ -97,11 +106,12 @@ public class MainActivity extends Activity {
 	        
 	    } else {
 	        // Turn Heli Off
-	    	ToastText("Heli Turning Off");
+	    	sendLetter = "4";
+	    	sendData();
 	    }
 	}
 	
-	public void Lights(View view) {
+	public void Lights(View view) throws IOException {
 	    // Is the toggle on?
 	    boolean on = ((ToggleButton) view).isChecked();
 	    boolean connected = connectButton.isChecked();
@@ -109,7 +119,8 @@ public class MainActivity extends Activity {
 	    if (on) {
 	    	if (connected){
 	    		// Turn Lights On
-		    	ToastText("Lights Turning On");
+		    	sendLetter = "1";
+		    	sendData();
 	    	} else {
 	    		ToastText("Not Connected");
 	    		lightsButton.setChecked(false);
@@ -117,36 +128,11 @@ public class MainActivity extends Activity {
 	        
 	    } else {
 	        // Turn Lights Off
-	    	ToastText("Lights Turning Off");
+	    	sendLetter = "2";
+	    	sendData();
 	    }
 	}
 
-	public void Connect() {
-		
-		ToastText("Connecting");
-		
-		mReceiver = new BroadcastReceiver() {
-    	    public void onReceive(Context context, Intent intent) {
-    	        String action = intent.getAction();
-    	        // When discovery finds a device
-    	        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-    	            // Get the BluetoothDevice object from the Intent
-    	            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-    	            // Add the name and address to an array adapter to show in a ListView
-    	            ToastText(device.getName());
-    	            if (device.getName() == "HC-06"){
-    	            	ToastText("Found Device");
-    	            }else {
-    	            	ToastText("not my device");
-    	            }
-    	        }
-    	    }
-    	};
-    	
-    	filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-    	registerReceiver(mReceiver, filter);
-    
-	}
 	public void CheckBT() {
 		//BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBluetoothAdapter == null) {
@@ -159,6 +145,37 @@ public class MainActivity extends Activity {
 				Connect();
 			}
 		}
+	}
+	
+	public void Connect() {
+		
+		ToastText("Finding Heli");
+		
+		mBluetoothAdapter.startDiscovery();
+		mReceiver = new BroadcastReceiver() {
+			
+    	    public void onReceive(Context context, Intent intent) {
+    	        String action = intent.getAction();
+    	        // When discovery finds a device
+    	        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+    	            // Get the BluetoothDevice object from the Intent
+    	            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    	            // Add the name and address to an array adapter to show in a ListView
+    	            if (device.getName().equals("HC-06")){
+    	                ToastText("Connecting to Heli");
+    	                unregisterReceiver(mReceiver);
+    	                Thread connectBT = new ConnectThread(device);
+    	                //Connect to the the device in a new thread
+    	                new Thread(connectBT).start();
+    	            }else {
+    	            }
+    	        }
+    	    }
+    	};
+    	
+    	filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+    	registerReceiver(mReceiver, filter);
+    
 	}
 	
 	@Override
@@ -175,15 +192,116 @@ public class MainActivity extends Activity {
 	  }
 	}
 	
-	public void ToastText(String textToDisplay) {
-		
-		  Toast myMessage = Toast.makeText(getApplicationContext(), textToDisplay, Toast.LENGTH_SHORT);
+	public static void ToastText(String textToDisplay) {
+		  Toast myMessage = Toast.makeText(context, textToDisplay, Toast.LENGTH_SHORT);
 		  myMessage.setGravity(Gravity.CENTER, 0, 0);
 		  myMessage.show();
 		}
+	
+	void sendData() throws IOException {
+		  ConnectedThread.mmOutStream.write(sendLetter.getBytes());
+		}
+}
 
-	@Override
-    public void onDestroy() {
-        unregisterReceiver(mReceiver);
+class ConnectThread extends Thread {
+    private final BluetoothSocket mmSocket;
+    private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+ 
+    public ConnectThread(BluetoothDevice device) {
+        // Use a temporary object that is later assigned to mmSocket,
+        // because mmSocket is final
+        BluetoothSocket tmp = null;
+        // Get a BluetoothSocket to connect with the given BluetoothDevice
+        try {
+            // MY_UUID is the app's UUID string, also used by the server code
+            tmp = device.createRfcommSocketToServiceRecord(uuid);
+        } catch (IOException e) { }
+        mmSocket = tmp;
+    }
+ 
+    public void run() {
+        // Cancel discovery because it will slow down the connection
+        MainActivity.mBluetoothAdapter.cancelDiscovery();
+ 
+        try {
+            // Connect the device through the socket. This will block
+            // until it succeeds or throws an exception
+            mmSocket.connect();
+        } catch (IOException connectException) {
+            // Unable to connect; close the socket and get out
+            try {
+                mmSocket.close();
+            } catch (IOException closeException) { }
+            return;
+        }
+ 
+        // Do work to manage the connection (in a separate thread)
+        Thread connectedBT = new ConnectedThread(mmSocket);
+        //Connect to the the device in a new thread
+        new Thread(connectedBT).start();
+    }
+ 
+    /** Will cancel an in-progress connection, and close the socket */
+    public void cancel() {
+        try {
+            mmSocket.close();
+        } catch (IOException e) { }
+    }
+
+}
+
+class ConnectedThread extends Thread {
+    
+	static int MESSAGE_WRITE ;
+	static int MESSAGE_READ ;
+	private final BluetoothSocket mmSocket;
+    private final InputStream mmInStream;
+    public static OutputStream mmOutStream;
+ 
+    public ConnectedThread(BluetoothSocket socket) {
+        mmSocket = socket;
+        InputStream tmpIn = null;
+        OutputStream tmpOut = null;
+ 
+        // Get the input and output streams, using temp objects because
+        // member streams are final
+        try {
+            tmpIn = socket.getInputStream();
+            tmpOut = socket.getOutputStream();
+        } catch (IOException e) { }
+ 
+        mmInStream = tmpIn;
+        mmOutStream = tmpOut;
+    }
+ 
+    public void run() {
+        byte[] buffer = new byte[1024];  // buffer store for the stream
+        int bytes; // bytes returned from read()
+ 
+        // Keep listening to the InputStream until an exception occurs
+        while (true) {
+            try {
+                // Read from the InputStream
+                bytes = mmInStream.read(buffer);
+                // Send the obtained bytes to the UI activity
+                //mHandler.handleMessage(MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+            } catch (IOException e) {
+                break;
+            }
+        }
+    }
+ 
+    /* Call this from the main activity to send data to the remote device */
+    public void write(byte[] bytes) {
+        try {
+            mmOutStream.write(bytes);
+        } catch (IOException e) { }
+    }
+ 
+    /* Call this from the main activity to shutdown the connection */
+    public void cancel() {
+        try {
+            mmSocket.close();
+        } catch (IOException e) { }
     }
 }
