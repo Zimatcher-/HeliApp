@@ -3,6 +3,9 @@
 
     <string name="app_name">Helicopter</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="lightsText">Lights</string>
+    <string name="heliText">Heli</string>
+    <string name="connectText">Connect</string>
+
 
 </resources>

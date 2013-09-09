@@ -13,7 +13,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:gravity="center"
-        android:text="Lights"
+        android:text="@string/lightsText"
         android:textColor="@android:color/holo_blue_dark"
         android:textColorHint="@android:color/holo_blue_dark" />
 
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/lightsText"
-        android:text="Lights" 
+        android:text="@string/lightsText" 
         android:onClick="Lights"/>
 
     <TextView
@@ -34,7 +34,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignRight="@+id/heliButton"
         android:gravity="center"
-        android:text="Heli"
+        android:text="@string/heliText"
         android:textColor="@android:color/holo_blue_dark"
         android:textColorHint="@android:color/holo_blue_dark" />
 
@@ -45,8 +45,29 @@
         android:layout_alignBaseline="@+id/lightsButton"
         android:layout_alignBottom="@+id/lightsButton"
         android:layout_toLeftOf="@+id/lightsButton"
-        android:text="Heli"
+        android:text="@string/heliText"
         android:onClick="Heli" />
+    
+    <TextView
+        android:id="@+id/connectText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/connectButton"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/heliText"
+        android:gravity="center"
+        android:text="@string/connectText"
+        android:textColor="@android:color/holo_blue_dark" />
+
+    <ToggleButton
+        android:id="@+id/connectButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/heliButton"
+        android:layout_alignBottom="@+id/heliButton"
+        android:layout_toLeftOf="@+id/heliButton"
+        android:onClick="Connect"
+        android:text="@string/connectText" />
     
     <android.widget.VerticalSeekBar
         android:id="@+id/throtleBar"
@@ -62,5 +83,7 @@
         android:layout_toRightOf="@+id/throtleBar"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@android:color/holo_blue_dark" />
+
+    
 
 </RelativeLayout>
