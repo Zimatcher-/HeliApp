@@ -1,0 +1,66 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/background_dark"
+    tools:context=".MainActivity" >
+
+    <TextView
+        android:id="@+id/lightsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/lightsButton"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:gravity="center"
+        android:text="Lights"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textColorHint="@android:color/holo_blue_dark" />
+
+    <ToggleButton
+        android:id="@+id/lightsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/lightsText"
+        android:text="Lights" 
+        android:onClick="Lights"/>
+
+    <TextView
+        android:id="@+id/heliText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/heliButton"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/heliButton"
+        android:gravity="center"
+        android:text="Heli"
+        android:textColor="@android:color/holo_blue_dark"
+        android:textColorHint="@android:color/holo_blue_dark" />
+
+    <ToggleButton
+        android:id="@+id/heliButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/lightsButton"
+        android:layout_alignBottom="@+id/lightsButton"
+        android:layout_toLeftOf="@+id/lightsButton"
+        android:text="Heli"
+        android:onClick="Heli" />
+    
+    <android.widget.VerticalSeekBar
+        android:id="@+id/throtleBar"
+        android:layout_width="wrap_content"
+        android:layout_height="260dp"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:id="@+id/throtleText"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/throtleBar"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@android:color/holo_blue_dark" />
+
+</RelativeLayout>
