@@ -3,6 +3,7 @@ package com.zimatcher.helicopter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.UUID;
 import android.os.Bundle;
 import android.app.Activity;
@@ -13,6 +14,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.SeekBar;
@@ -27,7 +33,9 @@ public class MainActivity extends Activity {
 	ToggleButton connectButton, heliButton, lightsButton;
 	int progress, resultBT;
 	VerticalSeekBar seekBar;
-	TextView seekBarValue; 
+	TextView seekBarValue, textviewAzimuth, textviewPitch, textviewRoll; 
+    private static SensorManager mySensorManager;
+    private boolean sersorrunning;
 	BroadcastReceiver mReceiver;
 	IntentFilter filter;
 	String sendLetter;
@@ -45,7 +53,21 @@ public class MainActivity extends Activity {
 		connectButton = ((ToggleButton) findViewById(R.id.connectButton));
 		heliButton = ((ToggleButton) findViewById(R.id.heliButton));
 		lightsButton = ((ToggleButton) findViewById(R.id.lightsButton));
-		
+		textviewAzimuth = (TextView)findViewById(R.id.textAzimuth);
+	    textviewPitch = (TextView)findViewById(R.id.textPitch);
+	    textviewRoll = (TextView)findViewById(R.id.textRoll);
+	    mySensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+	    List<Sensor> mySensors = mySensorManager.getSensorList(Sensor.TYPE_ORIENTATION);
+	    
+	    if(mySensors.size() > 0){
+	        mySensorManager.registerListener(mySensorEventListener, mySensors.get(0), SensorManager.SENSOR_DELAY_NORMAL);
+	        sersorrunning = true;
+	    } else{
+	        Toast.makeText(this, "No ORIENTATION Sensor", Toast.LENGTH_LONG).show();
+	        sersorrunning = false;
+	        finish();
+	    }
+	           
 		seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){ 
 
 			   @Override 
@@ -68,10 +90,29 @@ public class MainActivity extends Activity {
 			    // TODO Auto-generated method stub 
 			   } 
 			       }); 
+		
 
 	}
+	
+	private SensorEventListener mySensorEventListener = new SensorEventListener() {
+		  
+		  @Override
+		  public void onSensorChanged(SensorEvent event) {
+		   // TODO Auto-generated method stub
+		   
+		           textviewAzimuth.setText("Y: " + String.valueOf((int)event.values[0]));
+		           textviewPitch.setText("Z: " + String.valueOf((int)event.values[1]));
+		           textviewRoll.setText("X: " + String.valueOf((int)event.values[2]));
 
-    public void Connect(View view) {
+		  }
+		  @Override
+		  public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		   // TODO Auto-generated method stub
+
+		  }
+		 };
+
+    public void Connect(View view) throws IOException {
 	    // Is the toggle on?
 	    boolean on = ((ToggleButton) view).isChecked();
 	    
@@ -80,11 +121,17 @@ public class MainActivity extends Activity {
 	    	CheckBT();
 	    } else {
 	        // Disconnect From Heli
-	    	heliButton.setChecked(false);
-	    	lightsButton.setChecked(false);
+	    	if (heliButton.isChecked()){
+	    		sendLetter = "4";
+		    	sendData();
+	    		heliButton.setChecked(false);
+	    	}
+	    	if (lightsButton.isChecked()){
+	    		sendLetter = "2";
+		    	sendData();
+	    		lightsButton.setChecked(false);
+	    	}
 	    	ToastText("Disconnecting");
-	    	ToastText("Bluetooth Turning off");
-	    	
 	    	mBluetoothAdapter.disable();
 	    }
 	}
@@ -182,7 +229,6 @@ public class MainActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 	  if (requestCode==0) {
 	    if (resultCode == RESULT_OK) {
-	      ToastText("Bluetooth turned ON");
 	      Connect();
 	    } 
 	    else {
@@ -201,6 +247,18 @@ public class MainActivity extends Activity {
 	void sendData() throws IOException {
 		  ConnectedThread.mmOutStream.write(sendLetter.getBytes());
 		}
+
+	@Override
+	 protected void onDestroy() {
+	  // TODO Auto-generated method stub
+	  super.onDestroy();
+	  if (mBluetoothAdapter.isEnabled()){
+		  mBluetoothAdapter.disable();
+	  }
+	  if(sersorrunning){
+	   mySensorManager.unregisterListener(mySensorEventListener);
+	  }
+	 }
 }
 
 class ConnectThread extends Thread {

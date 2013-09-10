@@ -82,8 +82,34 @@
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@+id/throtleBar"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:gravity="center"
         android:textColor="@android:color/holo_blue_dark" />
 
-    
+    <TextView
+        android:id="@+id/textAzimuth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/lightsButton"
+        android:gravity="center"
+        android:layout_toRightOf="@+id/heliButton" />
+
+    <TextView
+        android:id="@+id/textPitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/textAzimuth"
+        android:gravity="center"
+        android:layout_toRightOf="@+id/heliButton" />
+
+    <TextView
+        android:id="@+id/textRoll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/textPitch"
+        android:gravity="center"
+        android:layout_toRightOf="@+id/heliButton" />
 
 </RelativeLayout>
